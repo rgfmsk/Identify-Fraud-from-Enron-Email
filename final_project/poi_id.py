@@ -121,8 +121,8 @@ nanValues = nanDetectorForValues(50)
 print "Features which at least %50 of their values are Nan : "
 print nanValues
 
-nanKeys = nanDetectorForKeys(85)
-print "Keys which at least %85 of their features are Nan : "
+nanKeys = nanDetectorForKeys(90)
+print "Individuals which at least %90 of their features are Nan : "
 print nanKeys
 
 
@@ -166,12 +166,12 @@ for i in data_dict:
 ## removing outliers and Nans
 
 for i in nanKeys:
-    my_dataset.pop(i)  ##remove the keys with lots of NaN values, which in this case is %85 or more NaN percentage
+    my_dataset.pop(i)  ##remove the keys with lots of NaN values, which in this case is %90 or more NaN percentage
 
 my_dataset.pop("TOTAL")  ## remove the total outlier
 
 
-## find  the index of given feature
+## find the index of given feature
 def findIndex(feature):
     index = 0
     for i in features_list:  ## loop through the feature list, until the given feature is matched
@@ -240,15 +240,15 @@ nFeatures = 10
 
 kBest = SelectKBest(k=nFeatures)
 kBest.fit_transform(features, labels)
-kResult = zip(kBest.get_support(), features_list[1:])
+kResult = zip(kBest.get_support(), kBest.scores_, features_list[1:])
+sortedResults = list(sorted(kResult, key=lambda x: x[1], reverse=True))
 
 ## keep selected features in list, remove others
-for trueFalse, feature in kResult:
+for trueFalse, score, feature in sortedResults:
     if not trueFalse:
         del features_list[findIndex(feature)]
-
-## poi + 10 best feature remains
-print features_list, "\n"
+    else:
+        print "| ", feature, " | ", score, " |"
 
 ### Task 4: Try a varity of classifiers
 ### Please name your classifier clf for easy export below.
@@ -459,33 +459,32 @@ for x in allClassifiers:  ##loop through all classifiers
     ## record results in dictionary
     allClassifiers[x]["clf"] = estimator
     allClassifiers[x]["params"] = params
-    allClassifiers[x]["accuracy"] = accuracy
-    allClassifiers[x]["precision"] = precision
-    allClassifiers[x]["recall"] = recall
-    allClassifiers[x]["f1"] = f1
-    allClassifiers[x]["f2"] = f2
-    allClassifiers[x]["trainTime"] = trainTime
-    allClassifiers[x]["predictTime"] = predictTime
+    allClassifiers[x]["accuracy"] = round(accuracy, 2)
+    allClassifiers[x]["precision"] = round(precision, 2)
+    allClassifiers[x]["recall"] = round(recall, 2)
+    allClassifiers[x]["f1"] = round(f1, 2)
+    allClassifiers[x]["f2"] = round(f2, 2)
+    allClassifiers[x]["trainTime"] = round(trainTime, 2)
+    allClassifiers[x]["predictTime"] = round(predictTime, 2)
 
-maxScore = 0.
-clf = None
-
-## choosing best classifier
-for i in allClassifiers:
-    ## a formula for choosing best classifier, i made it up.
+    ## calculate a new score, with a formula for choosing best classifiers, i made it up.
     ## f1 score, accuracy, precision and recall values are important, but in this case, time is important too.
     ## score = (f1*precision*recall*accuracy) / (total time)
     ## this makes sense to me.
+    score = (allClassifiers[x]["f1"] * allClassifiers[x]["precision"] * \
+                            allClassifiers[x]["recall"] * allClassifiers[x]["accuracy"]) / \
+            (allClassifiers[x]["trainTime"] + allClassifiers[x]["predictTime"])
 
-    score = (allClassifiers[i]["f1"] * allClassifiers[i]["precision"] * \
-             allClassifiers[i]["recall"] * allClassifiers[i]["accuracy"]) / \
-            (allClassifiers[i]["trainTime"] + allClassifiers[i]["predictTime"])
+    ## store new score in dictionary
+    allClassifiers[x]["my_score"] = round(score, 4)
 
-    if score > maxScore:## get the max score
-        maxScore = score
-        clf = allClassifiers[i]["clf"] ##store the classifier
+    ##printing scores to use in .md
+    print "| ", x, " | ", round(score, 2), " | ", allClassifiers[x]["accuracy"], " | ", allClassifiers[x]["precision"], \
+        " | ", allClassifiers[x]["recall"], " | ", allClassifiers[x]["f1"], " | ", allClassifiers[x]["f2"], " | ", \
+        allClassifiers[x]["trainTime"], " | ", allClassifiers[x]["predictTime"], " |"
 
-print "selected classifier is : ", clf
+
+
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall
 ### using our testing script. Check the tester.py script in the final project
@@ -494,17 +493,22 @@ print "selected classifier is : ", clf
 ### stratified shuffle split cross validation. For more info:
 ### http://scikit-learn.org/stable/modules/generated/sklearn.cross_validation.StratifiedShuffleSplit.html
 
+## choosing best classifier
+for i in allClassifiers:
+    if i in ['NaiveBayes', 'DecisionTree', 'LogisticRegression']:
+        print allClassifiers[i]["clf"]
 
-# best option looks like the naive one ! :)
-# clf = GaussianNB(priors=None)
 
-from tester import test_classifier
+## best 3 algorithm tested and validated with cross validtion using script included in tester.py
+## all those steps are runned in tunning.py script, and this returns the best algorithm, which is clearly Naive one :)
+from tuning import tuning
+clf = tuning()
 
-test_classifier(clf, my_dataset, features_list, folds=1000)
+## test script result are as above
+# GaussianNB(priors=None)
+# 	Accuracy: 0.82860	Precision: 0.34322	Recall: 0.31250	F1: 0.32714	F2: 0.31820
+# 	Total predictions: 15000	True positives:  625	False positives: 1196	False negatives: 1375	True negatives: 11804
 
-## after running test script result are as above
-# 	Accuracy: 0.80786	Precision: 0.31804	Recall: 0.30150	F1: 0.30955	F2: 0.30467
-# 	Total predictions: 14000	True positives:  603	False positives: 1293	False negatives: 1397	True negatives: 10707
 
 
 ### Task 6: Dump your classifier, dataset, and features_list so anyone can
