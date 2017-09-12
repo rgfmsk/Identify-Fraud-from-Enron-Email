@@ -152,9 +152,11 @@ And Naive-Bayes also, the fastest algorithm among others.
 
 
 ## References:
-- [Introduction to Machine Learning (Udacity)](https://www.udacity.com/course/viewer#!/c-ud120-nd)
-- [MITx Analytics Edge](https://www.edx.org/course/analytics-edge-mitx-15-071x-0)
+- [Enron Email Dataset](https://www.cs.cmu.edu/~./enron/)
 - [scikit-learn Documentation](http://scikit-learn.org/stable/documentation.html)
+- [Introduction to Machine Learning (Udacity)](https://www.udacity.com/course/viewer#!/c-ud120-nd)
+- [Ek$i Sözlük](https://eksisozluk.com/enron--219120)
+- [Wiki](https://tr.wikipedia.org/wiki/Enron)
 
 ## Files
 - `poi_id.py`: main submission file
