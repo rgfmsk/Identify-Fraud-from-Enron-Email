@@ -6,8 +6,8 @@ The goal of this project is to build a model to identify Person of Interests (PO
 Enron email data, by using some machine learning algorithms. 
 The data includes 146 different individual's email and financial records. 
 The data also includes the feature labeled "poi" for these individuals, which means we already 
-know the POI's. There are total of 21 features, 6 email features , 14 financial features and 
-the poi label.
+know the POI's. There are 18 individuals marked as POI, and 128 non-POI's. 
+There are total of 21 features, 6 email features , 14 financial features and the poi label.
 By using these informations, we want to build an algorithm to make predictions to identify POI's,
 maybe for another similiar cases too.
 
@@ -43,7 +43,17 @@ Then i scaled the features using sklearn's `MinMaxScaler`. Because every SO ques
 machine learning algorithms and their performance issues, scaling is the most suggested process.
 
 After scaling the features, i used sklearn's `SelectKBest` feature selection algorithm to pick 
-10 best features that i can use in my processes, and these 10 features came up :
+the best features that i can use in my processes. It gets all the features in the dataset, and scores
+each feature depending on each other, so higher values are better.
+According to [documantation of SelectKBest on sci-kit](http://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.SelectKBest.html#sklearn.feature_selection.SelectKBest)
+SelectKBest takes a parameter named `k`, and returns k number of best scored features, and k has a
+default value of `10`.
+
+Running this algorithm with a different `k` values [5,10,15,"all"] showed that, whatever the `k` value
+is, the scores of the features are not changing. So i looked at the scores of each feature and decided
+to move on with the features with a score value greater then 10.
+
+And these 6 features came up,while other 14 feature has a low score value then 10 :
 
 | Selected Features | Scores |
 | ---------------------- | ----- |
@@ -53,10 +63,6 @@ After scaling the features, i used sklearn's `SelectKBest` feature selection alg
 |  salary  |  18.575703268  |
 |  deferred_income  |  11.5955476597  |
 |  long_term_incentive  |  10.0724545294  |
-|  restricted_stock  |  9.34670079105  |
-|  total_payments  |  8.86672153711  |
-|  shared_receipt_with_poi  |  8.74648553213  |
-|  loan_advances  |  7.24273039654  |
 
 The features that i added to my features list didn't come up in this table, so it seems other 
 features are better indetifiers then mines.
@@ -85,14 +91,14 @@ My dictionary includes all of the above :
 
 | Algorithm | My Score | Accuracy | Precision | Recall | f1 | f2 | Training Time (s) | Prediction Time(s) |
 | --------- | ----- | ----- | ----- | ----- | ----- | ----- |----| ---- |
-|  SVM  |  0.0  |  0.86  |  0.0  |  0.0  |  0.0  |  0.0  |  0.91  |  0.0  |
-|  RandomForest  |  0.0  |  0.89  |  0.5  |  0.2  |  0.29  |  0.23  |  20.86  |  0.0  |
-|  KMeans  |  0.0  |  0.0  |  0.0  |  0.0  |  0.0  |  0.0  |  44.49  |  0.0  |
-|  NaiveBayes  |  5.3  |  0.64  |  0.24  |  1.0  |  0.38  |  0.61  |  0.01  |  0.0  |
-|  DecisionTree  |  0.01  |  0.91  |  0.67  |  0.4  |  0.5  |  0.43  |  8.14  |  0.0  |
-|  LogisticRegression  |  0.02  |  0.89  |  0.5  |  0.4  |  0.44  |  0.42  |  3.81  |  0.0  |
-|  AdaBoost  |  0.0  |  0.86  |  0.33  |  0.2  |  0.25  |  0.22  |  13.38  |  0.0  |
-|  KNeighbors  |  0.0  |  0.89  |  0.0  |  0.0  |  0.0  |  0.0  |  1.84  |  0.0  |
+|  SVM  |  0.0  |  0.864  |  0.0  |  0.0  |  0.0  |  0.0  |  0.86  |  0.0  |
+|  RandomForest  |  0.0013  |  0.886  |  0.5  |  0.2  |  0.286  |  0.227  |  19.349  |  0.0  |
+|  KMeans  |  0.0  |  0.0  |  0.0  |  0.0  |  0.0  |  0.0  |  38.134  |  0.0  |
+|  NaiveBayes  |  9.7124  |  0.636  |  0.238  |  1.0  |  0.385  |  0.61  |  0.006  |  0.0  |
+|  DecisionTree  |  0.017  |  0.909  |  0.667  |  0.4  |  0.5  |  0.435  |  7.138  |  0.0  |
+|  LogisticRegression  |  0.0214  |  0.886  |  0.5  |  0.4  |  0.444  |  0.417  |  3.679  |  0.0  |
+|  AdaBoost  |  0.0022  |  0.905  |  0.333  |  0.333  |  0.333  |  0.333  |  15.477  |  0.004  |
+|  KNeighbors  |  0.0  |  0.905  |  0.0  |  0.0  |  0.0  |  0.0  |  1.971  |  0.001  |
 
 
 I intended to use best three of these algorithms. But the list already includes three algorithms,
@@ -102,10 +108,14 @@ whose scores are greater then zero. So, i'll keep going with
 ## Tuning Parameters
 
 Parameter tuning is a neccesary step in machine learning. By tuning the parameters, we can 
-improve our predictions or we can improve our training and prediction times.
+improve our predictions or we can improve our training and prediction times. Most machine learning
+algorithms have a different set of parameters that we can set. There's no perfect parameter set that
+can be used for all kinds of datasets. It would be true if we say, all dataset has a different best
+settings, and finding the best settings of that data is the hardest part of all processes. And also
+the best settings is again depends on many other things like hardware, time, tolerance of the algorithm etc.
 
-But also, by over-tuning the parameters, we can also make our algorithm to act worse. 
-The algorithm can be trained so well and get a overfit shape. So, while everything is great 
+Although, by over-tuning the parameters we can also make our algorithm to act worse in real world. 
+The algorithm can be trained so well and get an overfit shape. So, while everything is great 
 in test sets, it can behave really bad in big data sets and make misleading choices. 
 So i think this step is kind of a trial-denial process. Yet, the feature i used in this project is
 just making these trials at once and gives the best result from all possible choices. And that is 
@@ -115,22 +125,31 @@ GridSearchCV.
 
 Validation is a process, which we test our algorithms our own. 
 By using the provided dataset, if we train our models with a small size of test points, we'll probably
-get higher rates of score metrics, such as precision, recall and f1. But this does not mean, 
-our model predicts very good. It predicts what it learns. And this is the classic mistake we can make. 
+get higher rates of score metrics, such as precision, recall and f1. Precision is the propotion of 
+correctly predicted positive values to the all positive predictions. Recall is the proportion of predicted
+positive values to the all positive observations. And f1 is the [harmonic mean](https://en.wikipedia.org/wiki/Harmonic_mean) of the precision and recall.
+But this does not mean, our model predicts very good. It predicts what it learns. 
+And this is the classic mistake we can make. 
 
 We can say that if we train our model with a huge data, then we'll probably get better results. 
 But training with huge data sets, is not always possible and also the time it takes to train 
 our model would increase too.
 
 So, with this validation step we test our algorithm with different variations of the test data by 
-generating new data points. And provided StratifiedSuffleSplit feature does a really great job generating
-new data points. It doesn't just splits the data, it also randomizes the data set and generates different
-data points, and generates as much as we want.
+generating new data points. And provided `StratifiedSuffleSplit` feature does a really great job generating
+new data points. Because of the imbalance in the data, while we increase our test set,we need to make sure 
+that the new data points is generated as the same balance with the original data. Meaning, just randomizing the 
+data is not good enough, because it can mislead us by creating positive values much more then the negative ones.
+In this case, POI records would be generated much more then the non-POI's, and this would change our scores in a
+wrong way. 
 
 Now we can test our algorithm with the new test set, and see the results. Since the test size got higher,
-it's normal to see the score metrics to drop. I did pick three different algorithms with high scores already,
-so i ran this validation for each of them. And among them, i choosed the best one, which is in this case
-`'Gaussian Naive-Bayes'`. Other two algorithms prediction metrics dropped more with bigger test sizes.
+it's normal to see the score metrics to drop. I used 0.3 proportion as test-size in both algorithm selection
+and validation step using `StratifiedSuffleSplit`. 
+
+I did pick three different algorithms with high scores already, so i ran this validation for each of them. 
+And among them, i choosed the best one, which is in this case `'Gaussian Naive-Bayes'`. Other two 
+algorithms prediction metrics dropped more with bigger test sizes.
 
 ## Metrics & Performance
 
@@ -148,7 +167,9 @@ sizes [100,500,1000,2000], which meets the project rubric scores for precision a
 - `Accuracy`: 0.82860	`Precision`:: 0.34322	`Recall`: 0.31250	`F1`: 0.32714	`F2`: 0.31820
 - `Accuracy`: 0.82570	`Precision`:: 0.33503	`Recall`: 0.31200	`F1`: 0.32311	`F2`: 0.31635
 
-And Naive-Bayes also, the fastest algorithm among others.
+>Note that the scores would change on different platforms, but on average they would give the same results.
+
+And also,Naive-Bayes is the fastest algorithm among others.
 
 
 ## References:

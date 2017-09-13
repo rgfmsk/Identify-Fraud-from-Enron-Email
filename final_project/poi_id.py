@@ -7,14 +7,13 @@ import numpy
 import pickle
 import warnings
 
-from sklearn import tree
+##importing the sklearn functions
 from sklearn.cluster import KMeans
 from sklearn.cross_validation import train_test_split, StratifiedShuffleSplit
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.feature_selection import SelectKBest, chi2
 from sklearn.grid_search import GridSearchCV
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, precision_score, recall_score
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import MinMaxScaler, RobustScaler
@@ -235,19 +234,36 @@ labels, features = targetFeatureSplit(data)
 scaler = MinMaxScaler()
 features = scaler.fit_transform(features)
 
-##select best 10 feature to use in algorithms with KBest
-nFeatures = 10
 
-kBest = SelectKBest(k=nFeatures)
-kBest.fit_transform(features, labels)
-kResult = zip(kBest.get_support(), kBest.scores_, features_list[1:])
-sortedResults = list(sorted(kResult, key=lambda x: x[1], reverse=True))
+##select best features to use in algorithms with KBest
+def selectFeatures(nParam):
+    kBest = SelectKBest(k=nParam)
+    kBest.fit_transform(features, labels)
+    kResult = zip(kBest.get_support(), kBest.scores_, features_list[1:])
+    return list(sorted(kResult, key=lambda x: x[1], reverse=True))
 
-## keep selected features in list, remove others
-for trueFalse, score, feature in sortedResults:
+
+results5 = selectFeatures(5)
+results10 = selectFeatures(10)
+results15 = selectFeatures(15)
+resultsAll = selectFeatures("all")
+
+pprint.pprint(results5)
+pprint.pprint(results10)
+pprint.pprint(results15)
+pprint.pprint(resultsAll)
+
+## running kBest with different "k" values shows that, the scores are not changing
+# it just changes the count of the features to return from the list
+# so i'll use the top 10 features
+
+nFeatures = 0
+
+for trueFalse, score, feature in results10:
     if not trueFalse:
         del features_list[findIndex(feature)]
     else:
+        nFeatures += 1 ## count of the selected features
         print "| ", feature, " | ", score, " |"
 
 ### Task 4: Try a varity of classifiers
@@ -347,16 +363,16 @@ def train(clf, params, features_train, labels_train):  ## trainer function
     clft = GridSearchCV(clf, params)  ## grid search with parameters
     clft = clft.fit(features_train, labels_train)  ## training the searcher for best fit
 
-    print "training time:", round(time() - t0, 3), "s"  ##print the training time
-    return clft, round(time() - t0, 3)  ## return best parameters
+    # print "training time:", round(time() - t0, 3), "s"  ##print the training time
+    return clft, (time() - t0)  ## return best parameters
 
 
 def predict(clf, features_test):  ## predictor function
     # predict
     t0 = time()  ##timer for calculating the prediction time
     pred = clf.predict(features_test)  ## predict the result for test features
-    print "predicting time:", round(time() - t0, 3), "s"  ## print the prediction time
-    return pred, round(time() - t0, 3)  ## return all predictions
+    # print "predicting time:", round(time() - t0, 3), "s"  ## print the prediction time
+    return pred, (time() - t0)  ## return all predictions
 
 
 def scores(pred, labels_test):  ## scoring function
@@ -402,11 +418,11 @@ def scores(pred, labels_test):  ## scoring function
         print "Got a divide by zero"
 
     ## print the values
-    print 'accuracy = ', accuracy
-    print 'precision = ', precision
-    print 'recall = ', recall
-    print 'f1 = ', f1
-    print 'f2 = ', f2
+    # print 'accuracy = ', accuracy
+    # print 'precision = ', precision
+    # print 'recall = ', recall
+    # print 'f1 = ', f1
+    # print 'f2 = ', f2
 
     return accuracy, precision, recall, f1, f2  ## return all scores
 
@@ -459,13 +475,13 @@ for x in allClassifiers:  ##loop through all classifiers
     ## record results in dictionary
     allClassifiers[x]["clf"] = estimator
     allClassifiers[x]["params"] = params
-    allClassifiers[x]["accuracy"] = round(accuracy, 2)
-    allClassifiers[x]["precision"] = round(precision, 2)
-    allClassifiers[x]["recall"] = round(recall, 2)
-    allClassifiers[x]["f1"] = round(f1, 2)
-    allClassifiers[x]["f2"] = round(f2, 2)
-    allClassifiers[x]["trainTime"] = round(trainTime, 2)
-    allClassifiers[x]["predictTime"] = round(predictTime, 2)
+    allClassifiers[x]["accuracy"] = accuracy
+    allClassifiers[x]["precision"] = precision
+    allClassifiers[x]["recall"] = recall
+    allClassifiers[x]["f1"] = f1
+    allClassifiers[x]["f2"] = f2
+    allClassifiers[x]["trainTime"] = trainTime
+    allClassifiers[x]["predictTime"] = predictTime
 
     ## calculate a new score, with a formula for choosing best classifiers, i made it up.
     ## f1 score, accuracy, precision and recall values are important, but in this case, time is important too.
@@ -476,12 +492,12 @@ for x in allClassifiers:  ##loop through all classifiers
             (allClassifiers[x]["trainTime"] + allClassifiers[x]["predictTime"])
 
     ## store new score in dictionary
-    allClassifiers[x]["my_score"] = round(score, 4)
+    allClassifiers[x]["my_score"] = score
 
     ##printing scores to use in .md
-    print "| ", x, " | ", round(score, 2), " | ", allClassifiers[x]["accuracy"], " | ", allClassifiers[x]["precision"], \
-        " | ", allClassifiers[x]["recall"], " | ", allClassifiers[x]["f1"], " | ", allClassifiers[x]["f2"], " | ", \
-        allClassifiers[x]["trainTime"], " | ", allClassifiers[x]["predictTime"], " |"
+    print "| ", x, " | ", round(score, 4), " | ", round(allClassifiers[x]["accuracy"],3), " | ", round(allClassifiers[x]["precision"],3), \
+        " | ", round(allClassifiers[x]["recall"],3), " | ", round(allClassifiers[x]["f1"],3), " | ", round(allClassifiers[x]["f2"],3), " | ", \
+        round(allClassifiers[x]["trainTime"],3), " | ", round(allClassifiers[x]["predictTime"],3), " |"
 
 
 

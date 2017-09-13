@@ -2,28 +2,29 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import GaussianNB
 from sklearn.tree import DecisionTreeClassifier
 
+
 def tuning():
     ## best scored classifier
     clf1 = GaussianNB(priors=None)
 
     ## second one
     clf2 = DecisionTreeClassifier(class_weight=None, criterion='gini', max_depth=2,
-                              max_features=None, max_leaf_nodes=None,
-                              min_impurity_decrease=0.0, min_impurity_split=None,
-                              min_samples_leaf=1, min_samples_split=2,
-                              min_weight_fraction_leaf=0.0, presort=False, random_state=42,
-                              splitter='random')
+                                  max_features=None, max_leaf_nodes=None,
+                                  min_impurity_decrease=0.0, min_impurity_split=None,
+                                  min_samples_leaf=1, min_samples_split=2,
+                                  min_weight_fraction_leaf=0.0, presort=False, random_state=42,
+                                  splitter='random')
     ## third one
     clf3 = LogisticRegression(C=10, class_weight=None, dual=False, fit_intercept=True,
-                          intercept_scaling=1, max_iter=100, multi_class='ovr', n_jobs=1,
-                          penalty='l2', random_state=42, solver='liblinear', tol=0.0001,
-                          verbose=0, warm_start=False)
+                              intercept_scaling=1, max_iter=100, multi_class='ovr', n_jobs=1,
+                              penalty='l2', random_state=42, solver='liblinear', tol=0.0001,
+                              verbose=0, warm_start=False)
 
-    from tester import test_classifier, load_classifier_and_data ##import tester scripts to run cross validation
+    from tester import test_classifier, load_classifier_and_data  ##import tester scripts to run cross validation
 
-    _, my_dataset, features_list = load_classifier_and_data() ##load the dataset and features
+    _, my_dataset, features_list = load_classifier_and_data()  ##load the dataset and features
 
-    #trying naive bayes with different test sets
+    # trying naive bayes with different test sets
     test_classifier(clf1, my_dataset, features_list, folds=100)
     # GaussianNB(priors=None)
     # 	Accuracy: 0.81733	Precision: 0.32381	Recall: 0.34000	F1: 0.33171	F2: 0.33663
@@ -129,6 +130,7 @@ def tuning():
     # the both precision and recall scores
     ##
     return clf1
+
 
 if __name__ == '__main__':
     tuning()
