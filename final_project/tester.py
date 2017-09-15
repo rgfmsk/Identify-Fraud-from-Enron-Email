@@ -13,6 +13,8 @@
 import pickle
 import sys
 from sklearn.cross_validation import StratifiedShuffleSplit
+from sklearn.preprocessing import MinMaxScaler
+
 sys.path.append("../tools/")
 from feature_format import featureFormat, targetFeatureSplit
 
@@ -25,6 +27,12 @@ RESULTS_FORMAT_STRING = "\tTotal predictions: {:4d}\tTrue positives: {:4d}\tFals
 def test_classifier(clf, dataset, feature_list, folds = 1000):
     data = featureFormat(dataset, feature_list, sort_keys = True)
     labels, features = targetFeatureSplit(data)
+
+    ## needed to add this, SVM wouldn't end if not.
+    scaler = MinMaxScaler()
+    features = scaler.fit_transform(features)
+    ##
+
     cv = StratifiedShuffleSplit(labels, folds, random_state = 42)
     true_negatives = 0
     false_negatives = 0

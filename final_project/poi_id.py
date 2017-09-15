@@ -2,7 +2,6 @@
 import pprint
 import sys
 from time import time
-import matplotlib.pyplot as py
 import numpy
 import pickle
 import warnings
@@ -25,6 +24,8 @@ from tester import dump_classifier_and_data
 warnings.filterwarnings("ignore")
 sys.path.append("../tools/")
 
+from util import nanDetectorForValues, nanDetectorForKeys, explore, findIndex, computeFraction
+from util import plotBar
 from feature_format import featureFormat, targetFeatureSplit
 
 ### Task 1: Select what features you'll use.
@@ -64,49 +65,6 @@ for i in my_dataset.values():
     else:
         nonPois += 1.
 
-
-## detect nan values of each person, with a given percentage
-## return a list of detected persons
-def nanDetectorForKeys(percentage):
-    nans = {}
-
-    for i in my_dataset:  ##loop through persons
-        nan = 0.
-        for t in my_dataset[i]:  ## loop through values
-            if my_dataset[i][t] == 'NaN' or t == '':  ## if value is Nan
-                nan += 1  ## add to nan
-
-        if nan / featureCount > float(percentage) / 100:  ## if nan counts are bigger then the given percentage
-            nans[i] = nan  ## add it to nans list
-
-    return nans  ##return list
-
-
-## detect nan values of each feature, with a given percentage
-## return a list of detected features
-def nanDetectorForValues(percentage):
-    nans = {}
-
-    allTogether = {}
-    for feature in features_list:  ## loop through all features
-        allTogether[feature] = list()  ## set a list for each feature
-        for i in my_dataset.values():  ## append all values for each feataure to the dictionary
-            (allTogether[feature]).append(i[feature])
-
-    for i in allTogether:  ## loop through all features, and values
-        arr = allTogether[i]
-        nan = 0.
-        for val in arr:  ## for each value
-            if val == 'NaN':  ## check if its NaN
-                nan += 1.  ##add +1 if it is
-
-        # print nan,dataPoints,percentage,nan/dataPoints > percentage/100
-        if nan / dataPoints > percentage / 100:  ## check if nan count is bigger then the given percentage
-            nans[i] = nan  ## add to nans list
-
-    return nans  ## return list
-
-
 ## data exploration
 
 print "Number of Data Points : ", dataPoints
@@ -116,40 +74,13 @@ print "Number of missing Poi values : ", dataPoints - (pois + nonPois)
 print "Poi percentage : %", round((pois / (nonPois + pois)), 2) * 100  ## poi's percentage for all records
 print "Number of Features : ", featureCount
 
-nanValues = nanDetectorForValues(50)
+nanValues = nanDetectorForValues(my_dataset, features_list, 50)
 print "Features which at least %50 of their values are Nan : "
 print nanValues
 
-nanKeys = nanDetectorForKeys(90)
+nanKeys = nanDetectorForKeys(my_dataset, features_list, 90)
 print "Individuals which at least %90 of their features are Nan : "
 print nanKeys
-
-
-def plot(feature1, feature2):  ## visualising two features
-    features = [feature1, feature2]  ## make a list of two
-    data = featureFormat(data_dict, features)  ## format given features
-    for point in data:
-        f1 = point[0]
-        f2 = point[1]
-        py.scatter(f1, f2)  ## plot scatter with each record
-    py.xlabel(feature1)
-    py.ylabel(feature2)
-    py.show()  ##show the plot
-
-
-def explore():  ## exploring features with each other in scatter plot
-    ##financial
-    plot("salary", "bonus")
-    plot("deferral_payments", "total_payments")
-    plot("loan_advances", "restricted_stock_deferred")
-    plot("deferred_income", "expenses")
-    plot("exercised_stock_options", "total_stock_value")
-    plot("long_term_incentive", "restricted_stock")
-    plot("other", "director_fees")
-    ##emails
-    plot("from_this_person_to_poi", "from_poi_to_this_person")
-    plot("shared_receipt_with_poi", "to_messages")
-    plot("from_messages", "to_messages")
 
 
 # explore()
@@ -170,18 +101,8 @@ for i in nanKeys:
 my_dataset.pop("TOTAL")  ## remove the total outlier
 
 
-## find the index of given feature
-def findIndex(feature):
-    index = 0
-    for i in features_list:  ## loop through the feature list, until the given feature is matched
-        if i == feature:
-            break
-        index += 1
-    return index
-
-
 ## remove email_address feature, since it's a string value and unique for every record
-del features_list[findIndex("email_address")]
+del features_list[findIndex("email_address",features_list)]
 
 
 ## features with NaN values are not cleaned, bevause they will be handled in "featureFormat"
@@ -191,17 +112,6 @@ del features_list[findIndex("email_address")]
 
 ## after removing outliers, there are still some records which looks like outliers, but in this case
 ## they could lead us to the poi's indeed, so i'll leave them as it is.
-
-## calculate fractions of given -related- values for poi frequency
-def computeFraction(param1, param2):
-    fraction = 0.
-    if float(param1) > 0. and float(param2) > 0.:  ## if both values are greater then 0
-        if float(param2) == 0. or float(param1) == 0.:
-            fraction = 0.
-        else:
-            fraction = float(param1) / float(param2)
-
-    return fraction
 
 
 for i in my_dataset:  ## for every data points
@@ -255,15 +165,18 @@ pprint.pprint(resultsAll)
 
 ## running kBest with different "k" values shows that, the scores are not changing
 # it just changes the count of the features to return from the list
-# so i'll use the top 10 features
+# so i'll visualized the scores in a bar chart and tried to find a cut-off point
 
-nFeatures = 0
+plotBar(resultsAll)
 
-for trueFalse, score, feature in results10:
+## according to the visual, there's a good cut-off point at between 4th and 5th element
+## so we can use 4 element in our algorithm
+nFeatures = 4
+
+for trueFalse, score, feature in selectFeatures(nFeatures):
     if not trueFalse:
-        del features_list[findIndex(feature)]
+        del features_list[findIndex(feature,features_list)]
     else:
-        nFeatures += 1 ## count of the selected features
         print "| ", feature, " | ", score, " |"
 
 ### Task 4: Try a varity of classifiers
@@ -299,6 +212,7 @@ def createClassifiersAndParams():
                              'tol': [0.0001, 0.001, 0.005, 0.05],
                              'decision_function_shape': ['ovo', 'ovr'],
                              'random_state': [randomState],
+                             'verbose' : [False],
                              'C': [100, 1000, 10000]
                              })
 
@@ -322,6 +236,7 @@ def createClassifiersAndParams():
                                                          'max_features': ['auto', 'sqrt', 'log2', 3, nFeatures],
                                                          'min_samples_split': [2, 10, 20],
                                                          'class_weight': ["balanced_subsample", "balanced"],
+                                                         'verbose': [False],
                                                          # 'max_depth': [None, 2],
                                                          # 'min_samples_leaf': [1, 3],
                                                          # 'max_leaf_nodes': [None, 2],
@@ -341,6 +256,7 @@ def createClassifiersAndParams():
                                    'tol': [0.0001, 0.0005, 0.001, 0.005],
                                    'precompute_distances': [True, False],
                                    'random_state': [randomState],
+                                   'verbose': [False],
                                    'copy_x': [True, False],
                                    'algorithm': ['full', 'elkan']})
 
@@ -351,6 +267,7 @@ def createClassifiersAndParams():
                                                            'fit_intercept': [True, False],
                                                            'solver': ['liblinear'],
                                                            'class_weight': [None, 'balanced'],
+                                                           'verbose': [False],
                                                            'random_state': [randomState]
                                                            })
 
@@ -488,19 +405,18 @@ for x in allClassifiers:  ##loop through all classifiers
     ## score = (f1*precision*recall*accuracy) / (total time)
     ## this makes sense to me.
     score = (allClassifiers[x]["f1"] * allClassifiers[x]["precision"] * \
-                            allClassifiers[x]["recall"] * allClassifiers[x]["accuracy"]) / \
+             allClassifiers[x]["recall"] * allClassifiers[x]["accuracy"]) / \
             (allClassifiers[x]["trainTime"] + allClassifiers[x]["predictTime"])
 
     ## store new score in dictionary
     allClassifiers[x]["my_score"] = score
 
     ##printing scores to use in .md
-    print "| ", x, " | ", round(score, 4), " | ", round(allClassifiers[x]["accuracy"],3), " | ", round(allClassifiers[x]["precision"],3), \
-        " | ", round(allClassifiers[x]["recall"],3), " | ", round(allClassifiers[x]["f1"],3), " | ", round(allClassifiers[x]["f2"],3), " | ", \
-        round(allClassifiers[x]["trainTime"],3), " | ", round(allClassifiers[x]["predictTime"],3), " |"
-
-
-
+    print "| ", x, " | ", round(score, 4), " | ", round(allClassifiers[x]["accuracy"], 3), " | ", round(
+        allClassifiers[x]["precision"], 3), \
+        " | ", round(allClassifiers[x]["recall"], 3), " | ", round(allClassifiers[x]["f1"], 3), " | ", round(
+        allClassifiers[x]["f2"], 3), " | ", \
+        round(allClassifiers[x]["trainTime"], 3), " | ", round(allClassifiers[x]["predictTime"], 3), " |"
 
 ### Task 5: Tune your classifier to achieve better than .3 precision and recall
 ### using our testing script. Check the tester.py script in the final project
@@ -511,14 +427,14 @@ for x in allClassifiers:  ##loop through all classifiers
 
 ## choosing best classifier
 for i in allClassifiers:
-    if i in ['NaiveBayes', 'DecisionTree', 'LogisticRegression']:
+    if i in ['NaiveBayes', 'SVM', 'AdaBoost']:
         print allClassifiers[i]["clf"]
-
 
 ## best 3 algorithm tested and validated with cross validtion using script included in tester.py
 ## all those steps are runned in tunning.py script, and this returns the best algorithm, which is clearly Naive one :)
 from tuning import tuning
-clf = tuning()
+
+clf = tuning(False)
 
 ## test script result are as above
 # GaussianNB(priors=None)

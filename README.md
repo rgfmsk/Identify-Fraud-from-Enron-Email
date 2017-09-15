@@ -50,10 +50,12 @@ SelectKBest takes a parameter named `k`, and returns k number of best scored fea
 default value of `10`.
 
 Running this algorithm with a different `k` values [5,10,15,"all"] showed that, whatever the `k` value
-is, the scores of the features are not changing. So i looked at the scores of each feature and decided
-to move on with the features with a score value greater then 10.
+is, the scores of the features are not changing. So i looked for a cut-off point between features.
 
-And these 6 features came up,while other 14 feature has a low score value then 10 :
+
+![Scores by Features](final_project/features.png "Title")
+
+And by looking at the chart above, i decided to move on with the first 4 features.
 
 | Selected Features | Scores |
 | ---------------------- | ----- |
@@ -61,8 +63,6 @@ And these 6 features came up,while other 14 feature has a low score value then 1
 |  total_stock_value  |  24.4676540475  |
 |  bonus  |  21.0600017075  |
 |  salary  |  18.575703268  |
-|  deferred_income  |  11.5955476597  |
-|  long_term_incentive  |  10.0724545294  |
 
 The features that i added to my features list didn't come up in this table, so it seems other 
 features are better indetifiers then mines.
@@ -91,19 +91,18 @@ My dictionary includes all of the above :
 
 | Algorithm | My Score | Accuracy | Precision | Recall | f1 | f2 | Training Time (s) | Prediction Time(s) |
 | --------- | ----- | ----- | ----- | ----- | ----- | ----- |----| ---- |
-|  SVM  |  0.0  |  0.864  |  0.0  |  0.0  |  0.0  |  0.0  |  0.86  |  0.0  |
-|  RandomForest  |  0.0013  |  0.886  |  0.5  |  0.2  |  0.286  |  0.227  |  19.349  |  0.0  |
-|  KMeans  |  0.0  |  0.0  |  0.0  |  0.0  |  0.0  |  0.0  |  38.134  |  0.0  |
-|  NaiveBayes  |  9.7124  |  0.636  |  0.238  |  1.0  |  0.385  |  0.61  |  0.006  |  0.0  |
-|  DecisionTree  |  0.017  |  0.909  |  0.667  |  0.4  |  0.5  |  0.435  |  7.138  |  0.0  |
-|  LogisticRegression  |  0.0214  |  0.886  |  0.5  |  0.4  |  0.444  |  0.417  |  3.679  |  0.0  |
-|  AdaBoost  |  0.0022  |  0.905  |  0.333  |  0.333  |  0.333  |  0.333  |  15.477  |  0.004  |
-|  KNeighbors  |  0.0  |  0.905  |  0.0  |  0.0  |  0.0  |  0.0  |  1.971  |  0.001  |
-
+|  NaiveBayes  |  2.0604  |  0.692  |  0.167  |  0.5  |  0.25  |  0.357  |  0.007  |  0.0  |
+|  SVM  |  0.0227  |  0.872  |  0.333  |  0.25  |  0.286  |  0.263  |  0.915  |  0.0  |
+|  AdaBoost  |  0.0061  |  0.872  |  0.4  |  0.5  |  0.444  |  0.476  |  12.647  |  0.003  |
+|  LogisticRegression  |  0.0058  |  0.821  |  0.2  |  0.25  |  0.222  |  0.238  |  1.579  |  0.0  |
+|  DecisionTree  |  0.0013  |  0.821  |  0.2  |  0.25  |  0.222  |  0.238  |  6.989  |  0.0  |
+|  RandomForest  |  0.0003  |  0.795  |  0.167  |  0.25  |  0.2  |  0.227  |  20.907  |  0.001  |
+|  KMeans  |  0.0  |  0.0  |  0.0  |  0.0  |  0.0  |  0.0  |  40.838  |  0.0  |
+|  KNeighbors  |  0.0  |  0.872  |  0.0  |  0.0  |  0.0  |  0.0  |  2.356  |  0.001  |
 
 I intended to use best three of these algorithms. But the list already includes three algorithms,
 whose scores are greater then zero. So, i'll keep going with 
-`NaiveBayes`, `LogisticRegression` and `DecisionTree`.
+`NaiveBayes`, `SVM` and `AdaBoost`.
 
 ## Tuning Parameters
 
@@ -121,6 +120,25 @@ So i think this step is kind of a trial-denial process. Yet, the feature i used 
 just making these trials at once and gives the best result from all possible choices. And that is 
 GridSearchCV.
 
+In the results of GridSearchCV, NaiveBayes got the highest score.
+```
+GaussianNB(priors=None)
+```
+
+SVM is the second highest with these parameters:
+```
+ SVC( C=1000, cache_size=7000, class_weight=None, coef0=0.0,
+      decision_function_shape='ovo', degree=3, gamma='auto', kernel='poly',
+      max_iter=-1, probability=False, random_state=42, shrinking=True,
+      tol=0.0001, verbose=False)
+```
+
+And AdaBoost is the third highest with these parameters:
+```
+ AdaBoostClassifier(algorithm='SAMME', base_estimator=None, learning_rate=0.5,
+                    n_estimators=50, random_state=42)
+```
+
 ## Validation
 
 Validation is a process, which we test our algorithms our own. 
@@ -128,28 +146,37 @@ By using the provided dataset, if we train our models with a small size of test 
 get higher rates of score metrics, such as precision, recall and f1. Precision is the propotion of 
 correctly predicted positive values to the all positive predictions. Recall is the proportion of predicted
 positive values to the all positive observations. And f1 is the [harmonic mean](https://en.wikipedia.org/wiki/Harmonic_mean) of the precision and recall.
-But this does not mean, our model predicts very good. It predicts what it learns. 
-And this is the classic mistake we can make. 
 
-We can say that if we train our model with a huge data, then we'll probably get better results. 
-But training with huge data sets, is not always possible and also the time it takes to train 
-our model would increase too.
+Precision is in this case the proportion of the correctly predicted POI's to the all predicted POI's.
+
+> Precision = (Predicted as POI and it's True) / (Predicted as POI -even if it's True or False- )
+
+Recall is in this case the proportion of the correctly predicted POI's to the correctly predicted POIs and
+correctly predicted non-POI's.
+
+> Recall = (Predicted as POI and it's True) / (Predicted as POI and it's True + Predicted as non-POI and it's True )
+
+But getting higher rates does not mean our model predicts very good. It predicts what it learns. 
+So we can say that if we train our model with a huge data, then we'll probably get better results. 
+But training with huge data sets, is not always possible and also the time it takes to train our model 
+would increase too.
 
 So, with this validation step we test our algorithm with different variations of the test data by 
-generating new data points. And provided `StratifiedSuffleSplit` feature does a really great job generating
-new data points. Because of the imbalance in the data, while we increase our test set,we need to make sure 
-that the new data points is generated as the same balance with the original data. Meaning, just randomizing the 
-data is not good enough, because it can mislead us by creating positive values much more then the negative ones.
-In this case, POI records would be generated much more then the non-POI's, and this would change our scores in a
-wrong way. 
+generating new test sets. And provided `StratifiedSuffleSplit` feature does a really great job generating
+new data sets. Because of the imbalance in the data, while we split out dataset to training and test sets,we need 
+to make sure that the ratio between POI's and non-POI's have the same ratio with the original data. 
+Meaning, just splitting the data with a given ratio is not good enough, because it can mislead us by splitting 
+the dataset as it stands. All POI's could be in stay in training set, and test set would not have any POI records.
+Or POI records would be much more then non-POI's in the test set. And this will give a wrong score. 
 
-Now we can test our algorithm with the new test set, and see the results. Since the test size got higher,
+Now we can test our algorithm with the new test data, and see the results. Since the test size got higher,
 it's normal to see the score metrics to drop. I used 0.3 proportion as test-size in both algorithm selection
 and validation step using `StratifiedSuffleSplit`. 
 
-I did pick three different algorithms with high scores already, so i ran this validation for each of them. 
-And among them, i choosed the best one, which is in this case `'Gaussian Naive-Bayes'`. Other two 
-algorithms prediction metrics dropped more with bigger test sizes.
+First, I did pick three different algorithms with high scores and i ran this validation for each of them. 
+Then i got curiuos and ran the same test for all classifiers returned from GridSearchCV.
+And among them, i choosed the best one, which is in this case `'Gaussian Naive-Bayes'`. Other algorithms 
+prediction metrics dropped more with bigger test sizes and training times increased.
 
 ## Metrics & Performance
 
@@ -183,5 +210,6 @@ And also,Naive-Bayes is the fastest algorithm among others.
 - `poi_id.py`: main submission file
 - `tester.py`: producing test results for submission, provided by Udacity
 - `tuning.py`: cross validations of the results, and getting the best algorithm
-- `final project/`: dataset files and pickle objects
-- `tools/`: feature formatting funtions included
+- `final project/`: dataset files, figures and pickle objects
+- `tools/feature_format.py`: feature formatting funtions included
+- `tools/util.py`: utility functions
