@@ -87,7 +87,7 @@ My dictionary includes all classifiers and the parameters being tested above :
      'cache_size'               : [7000],
      'tol'                      : [0.0001, 0.001, 0.005, 0.05],
      'decision_function_shape'  : ['ovo', 'ovr'],
-     'random_state'             : [randomState],
+     'random_state'             : [42],
      'verbose'                  : [False],
      'C'                        : [100, 1000, 10000]
 ```
@@ -100,7 +100,7 @@ My dictionary includes all classifiers and the parameters being tested above :
     'min_samples_split'         : [2, 10, 20],
     'class_weight'              : ["balanced_subsample", "balanced"],
     'verbose'                   : [False],
-    'random_state'              : [randomState]
+    'random_state'              : [42]
 ```
     
  - [KMeans](http://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html)
@@ -110,7 +110,7 @@ My dictionary includes all classifiers and the parameters being tested above :
     'max_iter'                  : [50, 150, 300],
     'tol'                       : [0.0001, 0.0005, 0.001, 0.005],
     'precompute_distances'      : [True, False],
-    'random_state'              : [randomState],
+    'random_state'              : [42],
     'verbose'                   : [False],
     'copy_x'                    : [True, False],
     'algorithm'                 : ['full', 'elkan']
@@ -127,7 +127,7 @@ My dictionary includes all classifiers and the parameters being tested above :
     'max_depth'                 : [None, 2, 4, 8, 16],
     'min_samples_leaf'          : [1, 3, 5, 7, 9],
     'max_leaf_nodes'            : [None, 6, 12, 24],
-    'random_state'              : [randomState]
+    'random_state'              : [42]
 ```
  - [LogisticRegression](http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html)
 ```
@@ -138,18 +138,18 @@ My dictionary includes all classifiers and the parameters being tested above :
     'solver'                    : ['liblinear'],
     'class_weight'              : [None, 'balanced'],
     'verbose'                   : [False],
-    'random_state'              : [randomState]
+    'random_state'              : [42]
 ```
  - [AdaBoost](http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.AdaBoostClassifier.html)
 ```
     'n_estimators'              : [25, 50, 100],
     'algorithm'                 : ['SAMME', 'SAMME.R'],
     'learning_rate'             : [.2, .5, 1, 1.4, 2.],
-    'random_state'              : [randomState]
+    'random_state'              : [42]
 ```
  - [KNeighbors](http://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsClassifier.html)
 ```
-    'n_neighbors'               : [2, 4, nFeatures],
+    'n_neighbors'               : [2, 4, nFeatures], >>> 4 features selected, so nFeatures is 4
     'weights'                   : ['uniform', 'distance'],
     'algorithm'                 : ['auto', 'ball_tree', 'kd_tree', 'brute'],
     'leaf_size'                 : [10, 25, 50],
