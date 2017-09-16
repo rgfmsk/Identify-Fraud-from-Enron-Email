@@ -5,6 +5,7 @@ from time import time
 import numpy
 import pickle
 import warnings
+import sklearn
 
 ##importing the sklearn functions
 from sklearn.cluster import KMeans
@@ -20,6 +21,9 @@ from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 
 from tester import dump_classifier_and_data
+
+if sklearn.__version__ != "0.20.0":
+    warnings.warn("Please update Sklearn version 'pip install -U scikit-learn'",UserWarning)
 
 warnings.filterwarnings("ignore")
 sys.path.append("../tools/")

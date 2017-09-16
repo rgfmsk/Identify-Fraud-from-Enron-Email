@@ -53,7 +53,7 @@ Running this algorithm with a different `k` values [5,10,15,"all"] showed that, 
 is, the scores of the features are not changing. So i looked for a cut-off point between features.
 
 
-![Scores by Features](final_project/features.png "Title")
+![final_project/features.png](final_project/features.png "Scores By Features")
 
 And by looking at the chart above, i decided to move on with the first 4 features.
 
@@ -79,15 +79,84 @@ each parameter's training and prediction times in that dictionary.
 I also calculated a different score metric, by using all calculated results and the times.
 Using this new score, i'll try to use best three algorithms.
 
-My dictionary includes all of the above :
- - SVM
- - RandomForest
- - KMeans
- - NaiveBayes
- - DecisionTree
- - LogisticRegression
- - AdaBoost
- - KNeighbors
+My dictionary includes all classifiers and the parameters being tested above :
+
+ - [SVM](http://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html)
+```
+     'kernel'                   : ['poly', 'rbf', 'sigmoid'],
+     'cache_size'               : [7000],
+     'tol'                      : [0.0001, 0.001, 0.005, 0.05],
+     'decision_function_shape'  : ['ovo', 'ovr'],
+     'random_state'             : [randomState],
+     'verbose'                  : [False],
+     'C'                        : [100, 1000, 10000]
+```
+
+ - [RandomForest](http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html)
+```
+    'n_estimators'              : [5, 10, 25],
+    'criterion'                 : ['gini', 'entropy'],
+    'max_features'              : ['auto', 'sqrt', 'log2', 3, nFeatures],
+    'min_samples_split'         : [2, 10, 20],
+    'class_weight'              : ["balanced_subsample", "balanced"],
+    'verbose'                   : [False],
+    'random_state'              : [randomState]
+```
+    
+ - [KMeans](http://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html)
+```
+    'n_clusters'                : [4, 8, 16],
+    'init'                      : ['k-means++', 'random'],
+    'max_iter'                  : [50, 150, 300],
+    'tol'                       : [0.0001, 0.0005, 0.001, 0.005],
+    'precompute_distances'      : [True, False],
+    'random_state'              : [randomState],
+    'verbose'                   : [False],
+    'copy_x'                    : [True, False],
+    'algorithm'                 : ['full', 'elkan']
+```
+ - [NaiveBayes](http://scikit-learn.org/stable/modules/generated/sklearn.naive_bayes.GaussianNB.html)
+```
+    'priors'                    : [None]
+```
+ - [DecisionTree](http://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeClassifier.html)
+```
+    'criterion'                 : ['gini', 'entropy'],
+    'splitter'                  : ['best', 'random'],
+    'min_samples_split'         : [2, 10, 20],
+    'max_depth'                 : [None, 2, 4, 8, 16],
+    'min_samples_leaf'          : [1, 3, 5, 7, 9],
+    'max_leaf_nodes'            : [None, 6, 12, 24],
+    'random_state'              : [randomState]
+```
+ - [LogisticRegression](http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html)
+```
+    'penalty'                   : ['l1', 'l2'],
+    'tol'                       : [0.0001, 0.0005, 0.001, 0.005],
+    'C'                         : [1, 10, 100, 1000, 10000, 100000, 1000000],
+    'fit_intercept'             : [True, False],
+    'solver'                    : ['liblinear'],
+    'class_weight'              : [None, 'balanced'],
+    'verbose'                   : [False],
+    'random_state'              : [randomState]
+```
+ - [AdaBoost](http://scikit-learn.org/stable/modules/generated/sklearn.ensemble.AdaBoostClassifier.html)
+```
+    'n_estimators'              : [25, 50, 100],
+    'algorithm'                 : ['SAMME', 'SAMME.R'],
+    'learning_rate'             : [.2, .5, 1, 1.4, 2.],
+    'random_state'              : [randomState]
+```
+ - [KNeighbors](http://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsClassifier.html)
+```
+    'n_neighbors'               : [2, 4, nFeatures],
+    'weights'                   : ['uniform', 'distance'],
+    'algorithm'                 : ['auto', 'ball_tree', 'kd_tree', 'brute'],
+    'leaf_size'                 : [10, 25, 50],
+    'p'                         : [2, 3, 4]
+```
+
+I intended to use best three of these algorithms. So, i'll keep going with `NaiveBayes`, `SVM` and `AdaBoost`.
 
 | Algorithm | My Score | Accuracy | Precision | Recall | f1 | f2 | Training Time (s) | Prediction Time(s) |
 | --------- | ----- | ----- | ----- | ----- | ----- | ----- |----| ---- |
@@ -100,9 +169,6 @@ My dictionary includes all of the above :
 |  KMeans  |  0.0  |  0.0  |  0.0  |  0.0  |  0.0  |  0.0  |  40.838  |  0.0  |
 |  KNeighbors  |  0.0  |  0.872  |  0.0  |  0.0  |  0.0  |  0.0  |  2.356  |  0.001  |
 
-I intended to use best three of these algorithms. But the list already includes three algorithms,
-whose scores are greater then zero. So, i'll keep going with 
-`NaiveBayes`, `SVM` and `AdaBoost`.
 
 ## Tuning Parameters
 
